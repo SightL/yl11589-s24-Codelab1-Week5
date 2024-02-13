@@ -7,8 +7,8 @@ using UnityEngine.SceneManagement;
 public class Player : MonoBehaviour
 {
     Rigidbody rb;
-    public float moveSpeed = 1.0f;
     public Text info;
+    public float moveSpeed = 1.0f;
     // Start is called before the first frame update
     void Start()
     {
@@ -23,14 +23,12 @@ public class Player : MonoBehaviour
         
         if(Game.gameOver)
         {
-            info.text = "Game Over";
-
+            //info.text = "Game Over";
             return;
         }
 
         if(Game.win)
         {
-            info.text = "Well done!";
 
             return;
             
