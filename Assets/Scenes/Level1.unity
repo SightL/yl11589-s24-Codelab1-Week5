@@ -778,6 +778,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 247a2f0c4887c6a4fa27f21f5cfe76a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  level: 1
+  maxTime: 10
   levelText: {fileID: 957917967}
 --- !u!1 &957917965
 GameObject:

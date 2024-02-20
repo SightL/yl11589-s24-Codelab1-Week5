@@ -9,8 +9,12 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
-    private int level = 1; 
+    public int level = 1; 
+    const string FILE_DIR = "/DATA/";
+    const string DATA_FILE = "hl.txt";
+    string FILE_FULL_PATH;
     public int Level
+        
     {
         get
         {
@@ -19,58 +23,72 @@ public class GameManager : MonoBehaviour
         set
         {
             level = value;
-            Debug.Log("level changed!");
-
-            if (level > HighLevel)
+            
+            if (isHighLevel(level))
             {
-                HighLevel = level;
+                int highLevelSlot = -1;
+
+                for (int i = 0; i < HighLevels.Count; i++)
+                {
+                    if (level > highLevels[i])
+                    {
+                        highLevelSlot = i;
+                        break;
+                    }
+                }
+                highLevels.Insert(highLevelSlot, level);
+
+                highLevels = highLevels.GetRange(0, 5);
+
+                string levelBoardText = "";
+
+                foreach (var highLevel in highLevels)
+                {
+                    levelBoardText += highLevel + "\n";
+                }
+
+                highLevelsString = levelBoardText;
+                
+                File.WriteAllText(FILE_FULL_PATH, highLevelsString);;
             }
         }
     }
-    int highLevel = 1;
-
-    const string KEY_HIGH_LEVEL = "High Level";
+    string highLevelsString = "";
     
-    int HighLevel
+    List<int> highLevels;
+    
+    public List<int> HighLevels
     {
         get
         {
-            //highLevel = PlayerPrefs.GetInt(KEY_HIGH_LEVEL);
-
-            if (File.Exists(DATA_FULL_HL_FILE_PATH))
+            if (highLevels == null)
             {
-                string fileContents = File.ReadAllText(DATA_FULL_HL_FILE_PATH);
-                highLevel = Int32.Parse(fileContents);
+                highLevels = new List<int>();
+
+                highLevelsString = File.ReadAllText(FILE_FULL_PATH);
+
+                highLevelsString = highLevelsString.Trim();
+                
+                string[] highLevelArray = highLevelsString.Split("\n");
+
+                for (int i = 0; i < highLevelArray.Length; i++)
+                {
+                    int currentScore = Int32.Parse(highLevelArray[i]);
+                    highLevels.Add(currentScore);
+                }
             }
 
-            return highLevel;
-        }
-        
-        set
-        {
-            highLevel = value;
-            Debug.Log("New High Level!!!");
-            //PlayerPrefs.SetInt(KEY_HIGH_LEVEL, highLevel);
-            string fileContent = "" + highLevel;
-
-            if (!Directory.Exists(Application.dataPath + DATA_DIR))
-            {
-                Directory.CreateDirectory(Application.dataPath + DATA_DIR);
-            }
-
-            File.WriteAllText(DATA_FULL_HL_FILE_PATH, fileContent);
+            return highLevels;
         }
     }
+    float timer = 0;
+
+    public int maxTime = 10;
+
+    bool isInGame = true;
     
     
     public TextMeshProUGUI levelText;
-    
-
-    const string DATA_DIR = "/Data/";
-    const string DATA_HL_FILE = "hl.txt";
-
-    string DATA_FULL_HL_FILE_PATH;
-
     
     void Awake()
     {
@@ -88,19 +106,32 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        DATA_FULL_HL_FILE_PATH = Application.dataPath + DATA_DIR + DATA_HL_FILE;
+        FILE_FULL_PATH = Application.dataPath + FILE_DIR + DATA_FILE;
     }
+
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (isInGame)
         {
-            PlayerPrefs.DeleteKey(KEY_HIGH_LEVEL);
+            levelText.text = "Level: " + level + "\nTime:" + (maxTime - (int)timer);
         }
-        levelText.text = "Level: " + level +  "\nHighest Level: " + HighLevel;
+        else
+        {
+            levelText.text = "GAME OVER\nFINAL LEVEL: " + level +
+                             "\nHigh Levels:\n" + highLevelsString;
+        }
+
+        //add the fraction of a second between frames to timer
+        timer += Time.deltaTime;
         
-        //go to the next level
+        //if timer is >= maxTime
+        if (timer >= maxTime && isInGame)
+        {
+            isInGame = false;
+            SceneManager.LoadScene("EndScene");
+        }
         if(Game.win)
         {
             //level++;
@@ -108,5 +139,18 @@ public class GameManager : MonoBehaviour
             SceneManager.LoadScene(
                 SceneManager.GetActiveScene().buildIndex + 1);
         }
+    }
+    bool isHighLevel(int level)
+    {
+
+        for (int i = 0; i < HighLevels.Count; i++)
+        {
+            if (highLevels[i] < level)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
