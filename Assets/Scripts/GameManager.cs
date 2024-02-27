@@ -20,38 +20,8 @@ public class GameManager : MonoBehaviour
         {
             return level;
         }
-        set
-        {
-            level = value;
-            
-            if (isHighLevel(level))
-            {
-                int highLevelSlot = -1;
+        set { level = value; }
 
-                for (int i = 0; i < HighLevels.Count; i++)
-                {
-                    if (level > highLevels[i])
-                    {
-                        highLevelSlot = i;
-                        break;
-                    }
-                }
-                highLevels.Insert(highLevelSlot, level);
-
-                highLevels = highLevels.GetRange(0, 5);
-
-                string levelBoardText = "";
-
-                foreach (var highLevel in highLevels)
-                {
-                    levelBoardText += highLevel + "\n";
-                }
-
-                highLevelsString = levelBoardText;
-                
-                File.WriteAllText(FILE_FULL_PATH, highLevelsString);;
-            }
-        }
     }
     string highLevelsString = "";
     
@@ -61,7 +31,7 @@ public class GameManager : MonoBehaviour
     {
         get
         {
-            if (highLevels == null)
+            if (highLevels == null&& File.Exists(FILE_FULL_PATH))
             {
                 highLevels = new List<int>();
 
@@ -73,9 +43,17 @@ public class GameManager : MonoBehaviour
 
                 for (int i = 0; i < highLevelArray.Length; i++)
                 {
-                    int currentScore = Int32.Parse(highLevelArray[i]);
-                    highLevels.Add(currentScore);
+                    int currentLevel = Int32.Parse(highLevelArray[i]);
+                    highLevels.Add(currentLevel);
                 }
+            }
+            else if(highLevels == null)
+            {
+                highLevels = new List<int>();
+                highLevels.Add(3);
+                highLevels.Add(2);
+                highLevels.Add(1);
+                highLevels.Add(0);
             }
 
             return highLevels;
@@ -131,6 +109,7 @@ public class GameManager : MonoBehaviour
         {
             isInGame = false;
             SceneManager.LoadScene("EndScene");
+            SetHighLevel();
         }
         if(Game.win)
         {
@@ -152,5 +131,36 @@ public class GameManager : MonoBehaviour
         }
 
         return false;
+    }
+    void SetHighLevel()
+    {
+        if (isHighLevel(level))
+        {
+            int highLevelSlot = -1;
+
+            for (int i = 0; i < HighLevels.Count; i++)
+            {
+                if (level > highLevels[i])
+                {
+                    highLevelSlot = i;
+                    break;
+                }
+            }
+                
+            highLevels.Insert(highLevelSlot, level);
+
+            highLevels = highLevels.GetRange(0, 5);
+
+            string levelBoardText = "";
+
+            foreach (var highLevel in highLevels)
+            {
+                levelBoardText += highLevel + "\n";
+            }
+
+            highLevelsString = levelBoardText;
+                
+            File.WriteAllText(FILE_FULL_PATH, highLevelsString);
+        }
     }
 }
